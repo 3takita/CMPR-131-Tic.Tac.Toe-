@@ -1,0 +1,267 @@
+#include <iostream>
+#include <string>
+#include <random>
+#include <iomanip>
+#include <stdlib.h>
+#include <chrono>
+using namespace std;
+
+//Protottypes
+char board[9] = {' ',' ',' ',' ',' ',' ',' ',' ',' '};
+void showBoard();
+void getXplayerChoice();
+void getOplayerChoice();
+void getComputerChoice();
+int countBoard(char symbol);
+char checkWinner();
+void computerVsPlayer();
+void playerVsPlayer();
+void menu();
+
+//Driver
+int main() {
+    menu();
+	return 0;
+}
+
+//Precondition: Takes mode input from user to play against another player or computer.
+//Postcondition: Navigates user to selected mode. Prints game duration at end of game.
+void menu() {
+    using namespace std::chrono;
+    int mode;
+    cout<<"\n1. Computer vs Player."<<endl;
+    cout<<"2. Player vs Player.\n"<<endl;
+    cout<<"Select game mode."<<endl;
+    
+     while(!(cin>>mode) || mode<1 || mode>2) { 
+    	cout<<"Invalid input. Chose 1 or 2: ";
+        cin.clear();  //clear the error flag
+	    cin.ignore(123, '\n');  //discard previous input
+    } 
+    
+    //cin>>mode;
+    auto start = high_resolution_clock::now();
+    switch(mode) {
+        case 1:
+            computerVsPlayer();
+            break;
+        case 2:
+            playerVsPlayer();
+            break;
+        default:
+            cout<<"Please select a valid game mode."<<endl;
+            break;
+    }
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>((stop - start)/1000000); 
+    //Calculate and display duration
+    int sec, min, hr;
+    string tym; 
+    sec = duration.count(); //seconds
+    hr = floor(min/60); //hour
+    if(sec>60) {
+    	min = floor(sec/60);
+    	sec = sec%60;
+    	cout<<"Duration: "<<min<<"min, "<<sec<<"sec.\n"<<endl;
+    }else{
+        cout <<"Duration: "<<duration.count()<<"sec.\n"<< endl;
+    }
+}
+
+//Precondition: User selects mode 1 (Computer vs Player) & provide their name
+//Postcondition: Toggles between players. Checks & display winner or tie conditions
+void computerVsPlayer() {
+    string playerName;
+    cout<<"\nEnter your name: ";
+    cin>>playerName;
+    while(true) {
+        system("cls"); //clear error code
+        showBoard();
+        //Toggle between players or between player and computer
+        if(countBoard('x') == countBoard('o')) {
+            cout<<playerName<<"'s turn"<<endl;
+            getXplayerChoice();
+        }else{
+            getComputerChoice(); 
+        }
+        //Check for winner or tie, and display
+        char winner = checkWinner();
+        if(winner=='x') { //x for x-player
+            system("cls");
+            showBoard();
+            cout<<playerName<<" won the game.\n"<<endl;
+            break;
+        }else if(winner == 'o') { //o for o-player
+            system("cls");
+            showBoard();
+            cout<<"Computer won the game.\n"<<endl;
+            break;
+        }else if(winner == 'd') { //d for draw
+            cout<<"Its a tie\n"<<endl;
+            break;
+        }
+    }
+}
+
+//Precondition: User selects mode 2 (Player vs Player) & provide player names
+//Postcondition: Checks & display winner or tie conditions.
+void playerVsPlayer() {
+    string xPlayerName, oPlayerName;
+    cout<<"\nEnter name for x-player: ";
+    cin>>xPlayerName;
+    cout<<"\nEnter name for o-player: ";
+    cin>>oPlayerName;
+    while(1) {
+        system("cls");;
+        showBoard();
+        //Toggle player turn
+        if(countBoard('x') == countBoard('o')) {
+            cout<<xPlayerName<<"`s turn."<<endl;
+            getXplayerChoice();
+        }else{
+            cout<<oPlayerName<<"`s turn."<<endl;
+            getOplayerChoice();
+        }
+        //Check for a winner or tie, and display 
+        char winner = checkWinner();
+        if(winner == 'x') {
+            system("cls");
+            showBoard();
+            cout<<xPlayerName<<" won the game\n."<<endl;
+            break;
+        }else if(winner == 'o') {
+            system("cls");
+            showBoard();
+            cout<<oPlayerName<<" won the game.\n"<<endl;
+            break;
+        }else if(winner == 'd') {
+            cout<<"\nIt is a tie.\n"<<endl;
+            break;
+        }
+    }
+}
+
+//Precondition: User makes a move by selecting an available position from 1 to 9
+//Postcondition: A computer move is generated and displayed on the board
+void getComputerChoice() { //generates a random number
+	srand(time(0)); //generte a random number
+	int choice;
+    //check for available positions
+	do{
+	    choice = rand()%10;       //return a random number (0-9)
+	}while(board[choice] != ' '); //run only when a position has beens selected
+	board[choice] = 'o';          //computer character
+}
+
+//Precondition: Player-x enters only available integer positions from 1 to 9. 
+//Postcondition: Displays 'x' on the board to show Player-x's position of choice.
+void getXplayerChoice() {
+    while(true) {
+        cout<< "Select available position from 1 to 9: ";
+        int choice;
+        cin>>choice;
+        choice --; 
+        if(choice < 0 || choice > 8) {
+        	cout<<"Invalid input. ";
+        }else if(board[choice] != ' ') {//if positon is not available
+            cout<<"Position unavailable. "<<endl;
+        }else if(cin.fail()) {
+            cout<<"Only numbers allowed. ";
+        }else{
+            board[choice] = 'x';
+            break;
+        }
+        cin.clear();  //clear the error flag
+	    cin.ignore(123, '\n');  //discard previous input
+	}
+}
+
+//Precondition: Player-o enters only available integer positions from 1 to 9.
+//Postcondition: Displays 'o' on the board to show Player-o's position of choice.
+void getOplayerChoice() {
+	while(true) {
+        cout<< "Select a position from 1 to 9: ";
+        int choice;
+        cin>>choice;
+        choice --; 
+        if(choice < 0 || choice > 8) {
+        	cout<<"Invalid input. ";
+        }else if(board[choice] != ' ') {//if positon is not available
+            cout<<"Position unavailable. "<<endl;
+        }else if(cin.fail()) {
+            cout<<"Only numbers allowed. ";
+        }else{
+            board[choice] = 'o';
+            break;
+        }
+        cin.clear();  //clear the error flag
+	    cin.ignore(123, '\n');  //discard previous input
+	}
+}
+
+//Precondition: Player-x or Player-o makes available position choice from 1 to 9
+//Postcondition: Checks if winning or tie conditions exist on the board
+char checkWinner() {
+    if(board[0]==board[1] && board[1]==board[2] && board[0] != ' ') {
+        return board[0];
+    }
+    if(board[3]==board[4] && board[4]==board[5] && board[3] != ' ') {
+        return board[3];
+    }
+    if(board[6]==board[7] && board[7]==board[8] && board[6] != ' ') {
+        return board[6];
+    }
+        //checking winner in vertical/column
+    if(board[0]==board[3] && board[3]==board[6] && board[0] != ' ') {
+        return board[0];
+    }
+    if(board[1]==board[4] && board[4]==board[7] && board[1] != ' ') {
+        return board[1];
+    }
+    if(board[2]==board[5] && board[5]==board[8] && board[2] != ' ') {
+        return board[2];
+    }
+    //checking the winner diagonally
+    if(board[0]==board[4] && board[4]==board[8] && board[0] != ' ') {
+        return board[0];
+    }
+    if(board[2]==board[4] && board[4]==board[6] && board[2] != ' ') {
+        return board[2];
+    }
+    //check for empty position or tie
+    if(countBoard('x') + countBoard('o') < 9) {
+        return 'c';
+    }else{
+        return 'd';
+    }
+}
+
+//Precondition: Player(s) or computer chose available integer positions from 1 to 9.
+//Postcondition: Keeps track of total moves made on the board
+int countBoard(char symbol) {
+    int total = 0;
+    for(int i=0; i<9; i++) {
+        if(board[i]==symbol) {
+            total += 1;
+        }
+    }
+    return total;
+}
+
+//Precondition: User selects mode of choice and enters their name or names
+//Postcondition: Displays board. Prompts named player to select available position (1-9)
+void showBoard() {
+    cout<<"-------------------———-"<<endl;
+    cout<<"|  "<<"     |   "<<"    |       |"<<endl;
+    cout<<"|   "<<board[0]<<"   |   "<<board[1]<<"   |   "<<board[2]<<"   |"<<endl;
+    cout<<"|       |   "<<"    |   "<<"    |"<<endl;
+    cout<<"-------------------————"<<endl;
+    cout<<"|  "<<"     |   "<<"    |       |"<<endl;
+    cout<<"|   "<<board[3]<<"   |   "<<board[4]<<"   |   "<<board[5]<<"   |"<<endl;
+    cout<<"|       |   "<<"    |   "<<"    |"<<endl;
+    cout<<"------------------———--"<<endl;
+    cout<<"|  "<<"     |   "<<"    |       |"<<endl;
+    cout<<"|   "<<board[6]<<"   |   "<<board[7]<<"   |   "<<board[8]<<"   |"<<endl;
+    cout<<"|       |   "<<"    |   "<<"    |"<<endl;
+    cout<<"-------------------———-"<<endl;
+}
